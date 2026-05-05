@@ -14,7 +14,7 @@ def desviacion_estandar(datos):
         miu = miu/N
         suma_dif = 0
         for x_i in datos:
-            # abs obtiene el valor absoluto de un numero, el operador ** eleva a la potencia dada un numero
+        
             suma_dif += abs(x_i - miu) ** 2
 
         de = math.sqrt(suma_dif/N)
