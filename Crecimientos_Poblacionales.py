@@ -116,11 +116,9 @@ print(f"p-value: {p_value:.6f}")
 print("-" * 50)
 
 if p_value < 0.05:
-    print("CONCLUSIÓN:")
     print("El p-value es menor a 0.05. Se rechaza la hipótesis nula.")
     print("¡La serie transformada ES ESTACIONARIA y está lista para modelar!")
 else:
-    print("CONCLUSIÓN:")
     print("El p-value es mayor a 0.05. No se rechaza la hipótesis nula.")
     print("La serie NO es estacionaria todavía.")
 
@@ -204,15 +202,11 @@ modelo_arima = pm.auto_arima(nacional['log_total'],
                              suppress_warnings=True,
                              stepwise=True)
 
-# 2. Generar Predicciones (h = 12 meses para 2022)
+
 meses_a_predecir = 12
 pred_log, int_conf_log = modelo_arima.predict(n_periods=meses_a_predecir, return_conf_int=True)
 
-# --- TRADUCCIÓN DEL CÓDIGO DE LA IMAGEN A PYTHON ---
-# prediction$x <- exp(prediction$x)       -> Datos históricos
-# prediction$mean <- exp(prediction$mean) -> Media del pronóstico
-# prediction$lower <- exp(prediction$lower) -> Límite inferior
-# prediction$upper <- exp(prediction$upper) -> Límite superior
+
 
 historicos_exp = np.exp(nacional['log_total'])
 media_exp = np.exp(pred_log)
@@ -366,19 +360,15 @@ resultado_adf = adfuller(serie_transformada)
 
 p_value = resultado_adf[1]
 
-print("--- PRUEBA DE ESTACIONARIEDAD (DICKEY-FULLER AUMENTADA) ---")
 print(f"Estadístico ADF: {resultado_adf[0]:.4f}")
 print(f"p-value: {p_value:.6f}")
 print("-" * 50)
 
 if p_value < 0.05:
-    print("CONCLUSIÓN:")
     print("El p-value es menor a 0.05. Se rechaza la hipótesis nula.")
-    print("¡La serie transformada ES ESTACIONARIA y está lista para modelar!")
 else:
-    print("CONCLUSIÓN:")
     print("El p-value es mayor a 0.05. No se rechaza la hipótesis nula.")
-    print("La serie NO es estacionaria todavía.")
+    
 
 
 plt.figure(figsize=(12, 4))
@@ -390,76 +380,4 @@ plt.ylabel('Diferencias de Planificación')
 plt.grid(True, alpha=0.3)
 plt.show()
 
-!pip install pmdarima
-
-import pmdarima as pm
-
-print("Buscando el mejor modelo ARIMA...") #(m=12)
-modelo_arima = pm.auto_arima(nacional['total_metodos'],
-                             seasonal=True, m=12,
-                             d=1, D=1, # Le decimos que aplique 1 diferencia normal y 1 estacional
-                             trace=True,
-                             error_action='ignore',
-                             suppress_warnings=True,
-                             stepwise=True)
-
-print("\n--- EL MEJOR MODELO ---")
-print(modelo_arima.summary())
-
-# ========== MODIFIED PREDICTION PART ==========
-# Updated to use forecast approach with h=30 (like good_model_AP %>% forecast::forecast(h = 30))
-meses_a_predecir = 30  # Changed from 12 to 30 months (h = 30)
-predicciones, int_confianza = modelo_arima.predict(n_periods=meses_a_predecir, return_conf_int=True)
-
-# Generate dates for the forecast period
-ultima_fecha = nacional['fecha'].iloc[-1]  # Last date of historical data
-fechas_prediccion = pd.date_range(start=ultima_fecha + pd.DateOffset(months=1),
-                                   periods=meses_a_predecir,
-                                   freq='MS')
-
-import matplotlib.ticker as ticker
-
-# Create the forecast plot (similar to autoplot() in R)
-plt.figure(figsize=(14, 7))
-
-# Plot historical data
-plt.plot(nacional['fecha'], nacional['total_metodos'],
-         label='Datos Históricos', color='blue', marker='o', markersize=4, linewidth=2)
-
-# Connect last historical point to first forecast point for continuity
-fecha_puente = [nacional['fecha'].iloc[-1]] + list(fechas_prediccion)
-valor_puente = [nacional['total_metodos'].iloc[-1]] + list(predicciones)
-
-# Plot forecast line
-plt.plot(fecha_puente, valor_puente,
-         label='Pronóstico', color='green', linestyle='--', marker='o', markersize=4, linewidth=2)
-
-# Add confidence intervals (95%)
-plt.fill_between(fechas_prediccion,
-                 int_confianza[:, 0],
-                 int_confianza[:, 1],
-                 color='green', alpha=0.2, label='Intervalo de Confianza (95%)')
-
-# Customize the plot with general_theme-like styling
-plt.title(r'Pronóstico desde $ARIMA(0,1,1)(0,1,1)_{12}$', fontsize=16)
-plt.xlabel('Tiempo', fontsize=12)
-plt.ylabel('Total de Métodos', fontsize=12)
-plt.gca().yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:,.0f}'))
-plt.legend(loc='upper left')
-plt.grid(True, alpha=0.3, linestyle='--')
-plt.tight_layout()
-
-# Display the plot
-plt.show()
-
-# Optional: Print forecast summary
-print("\n--- PRONÓSTICO PARA LOS PRÓXIMOS 30 MESES ---")
-forecast_df = pd.DataFrame({
-    'Fecha': fechas_prediccion,
-    'Pronóstico': predicciones,
-    'Límite Inferior (95%)': int_confianza[:, 0],
-    'Límite Superior (95%)': int_confianza[:, 1]
-})
-print(forecast_df.head(10))
-print(f"\nRango del pronóstico: {fechas_prediccion[0]} a {fechas_prediccion[-1]}")
-print(f"Total de períodos pronosticados: {meses_a_predecir} meses")
+!
